@@ -1,4 +1,4 @@
-repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -16,42 +16,43 @@ Player.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- 🛡 กัน UI ใหม่ที่ถูกสร้าง (PlayerGui)
-PlayerGui.DescendantAdded:Connect(function(v)
-    if v:IsA("ScreenGui") and v.Name ~= "KyxHubUI" then
-        task.wait()
-        pcall(function()
-            v:Destroy()
-        end)
-    end
-end)
+-- UI whitelist
+local WHITELIST = {
+    ["KyxHubUI"] = true
+}
 
--- 🛡 กัน UI ใหม่จาก CoreGui
-CoreGui.DescendantAdded:Connect(function(v)
-    if v:IsA("ScreenGui") then
-        task.wait()
-        pcall(function()
-            v:Destroy()
-        end)
-    end
-end)
-
--- ลบ UI ที่มีอยู่ก่อน
-for _,v in pairs(PlayerGui:GetChildren()) do
-    if v:IsA("ScreenGui") then
+-- ลบ UI
+local function RemoveUI(v)
+    if v:IsA("ScreenGui") and not WHITELIST[v.Name] then
         pcall(function()
             v:Destroy()
         end)
     end
 end
 
-for _,v in pairs(CoreGui:GetChildren()) do
-    if v:IsA("ScreenGui") then
-        pcall(function()
-            v:Destroy()
-        end)
+-- กวาด UI ทั้งหมด
+local function CleanAll()
+    for _,v in pairs(PlayerGui:GetDescendants()) do
+        RemoveUI(v)
+    end
+    for _,v in pairs(CoreGui:GetDescendants()) do
+        RemoveUI(v)
     end
 end
+
+-- ลบก่อน
+CleanAll()
+
+-- ดัก UI ใหม่
+PlayerGui.DescendantAdded:Connect(RemoveUI)
+CoreGui.DescendantAdded:Connect(RemoveUI)
+
+-- ลบวนตลอด
+task.spawn(function()
+    while task.wait(0.5) do
+        CleanAll()
+    end
+end)
 
 -- Run Panda Script
 task.spawn(function()
@@ -134,12 +135,6 @@ Gradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(1,Color3.fromRGB(255,0,255))
 }
 
-local Glow = Instance.new("UIStroke")
-Glow.Parent = Title
-Glow.Thickness = 8
-Glow.Transparency = 0.7
-Glow.Color = Color3.fromRGB(0,255,255)
-
 -- Data Text
 local Data1 = Instance.new("TextLabel")
 Data1.Parent = Frame
@@ -159,7 +154,7 @@ Data2.Font = Enum.Font.GothamBold
 Data2.TextScaled = true
 Data2.TextColor3 = Color3.new(1,1,1)
 
--- Format Number
+-- format number
 local function Comma(n)
     local s = tostring(n)
     while true do
