@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
 local VirtualUser = game:GetService("VirtualUser")
 local UIS = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
@@ -15,24 +16,46 @@ Player.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
+-- 🛡 กัน UI ใหม่ที่ถูกสร้าง (PlayerGui)
+PlayerGui.DescendantAdded:Connect(function(v)
+    if v:IsA("ScreenGui") and v.Name ~= "KyxHubUI" then
+        task.wait()
+        pcall(function()
+            v:Destroy()
+        end)
+    end
+end)
+
+-- 🛡 กัน UI ใหม่จาก CoreGui
+CoreGui.DescendantAdded:Connect(function(v)
+    if v:IsA("ScreenGui") then
+        task.wait()
+        pcall(function()
+            v:Destroy()
+        end)
+    end
+end)
+
+-- ลบ UI ที่มีอยู่ก่อน
+for _,v in pairs(PlayerGui:GetChildren()) do
+    if v:IsA("ScreenGui") then
+        pcall(function()
+            v:Destroy()
+        end)
+    end
+end
+
+for _,v in pairs(CoreGui:GetChildren()) do
+    if v:IsA("ScreenGui") then
+        pcall(function()
+            v:Destroy()
+        end)
+    end
+end
+
 -- Run Panda Script
 task.spawn(function()
     loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/8cffffd967953fe7"))()
-end)
-
--- ลบเฉพาะ UI ของ Panda
-task.spawn(function()
-    while task.wait(2) do
-        for _,v in pairs(PlayerGui:GetChildren()) do
-            if v:IsA("ScreenGui") then
-                local name = string.lower(v.Name)
-
-                if string.find(name,"panda") then
-                    v:Destroy()
-                end
-            end
-        end
-    end
 end)
 
 -- Create KyxHub UI
@@ -136,7 +159,7 @@ Data2.Font = Enum.Font.GothamBold
 Data2.TextScaled = true
 Data2.TextColor3 = Color3.new(1,1,1)
 
--- Number Format
+-- Format Number
 local function Comma(n)
     local s = tostring(n)
     while true do
