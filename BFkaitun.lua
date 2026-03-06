@@ -15,18 +15,27 @@ Player.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- ปิด UI อื่น
+-- Run Panda Script
 task.spawn(function()
-    while task.wait(1) do
+    loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/8cffffd967953fe7"))()
+end)
+
+-- ลบเฉพาะ UI ของ Panda
+task.spawn(function()
+    while task.wait(2) do
         for _,v in pairs(PlayerGui:GetChildren()) do
-            if v:IsA("ScreenGui") and v.Name ~= "KyxHubUI" then
-                v.Enabled = false
+            if v:IsA("ScreenGui") then
+                local name = string.lower(v.Name)
+
+                if string.find(name,"panda") then
+                    v:Destroy()
+                end
             end
         end
     end
 end)
 
--- Create UI
+-- Create KyxHub UI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KyxHubUI"
 ScreenGui.Parent = PlayerGui
@@ -85,19 +94,16 @@ local Title = Instance.new("TextLabel")
 Title.Parent = Frame
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1,0,0,80)
-Title.Position = UDim2.new(0,0,0,0)
 Title.Text = "KyxHub"
 Title.Font = Enum.Font.GothamBlack
 Title.TextScaled = true
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 
--- Stroke
 local Stroke = Instance.new("UIStroke")
 Stroke.Parent = Title
 Stroke.Thickness = 3
 Stroke.Color = Color3.fromRGB(0,0,0)
 
--- Gradient
 local Gradient = Instance.new("UIGradient")
 Gradient.Parent = Title
 Gradient.Color = ColorSequence.new{
@@ -105,7 +111,6 @@ Gradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(1,Color3.fromRGB(255,0,255))
 }
 
--- Glow
 local Glow = Instance.new("UIStroke")
 Glow.Parent = Title
 Glow.Thickness = 8
@@ -160,6 +165,5 @@ RunService.RenderStepped:Connect(function()
     end
 
     local Ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-
     Data2.Text = "Ping "..Ping
 end)
